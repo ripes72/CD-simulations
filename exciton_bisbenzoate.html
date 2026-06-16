@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulazione eccitonica 1,2-bis(benzoato)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f5f5f3;
+    --border:    rgba(0,0,0,0.12);
+    --text:      #1a1a1a;
+    --text2:     #666660;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:     #1e1e1c;
+      --bg2:    #2a2a28;
+      --border: rgba(255,255,255,0.12);
+      --text:   #e8e8e4;
+      --text2:  #999992;
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 0.25rem; }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1.7fr);
+    gap: 1.5rem;
+    margin: 1rem 0;
+  }
+
+  @media (max-width: 640px) {
+    .layout { grid-template-columns: 1fr; }
+    .controls { grid-template-columns: 1fr; }
+  }
+
+  .panel-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+
+  .dipoleLeg {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .dipoleLeg span { display: flex; align-items: center; gap: 4px; }
+
+  .info-line {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.9;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-size: 13px;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctrl-row input[type=range] {
+    flex: 1;
+    accent-color: #185FA5;
+    cursor: pointer;
+  }
+  .ctrl-val {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 44px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .chart-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 175px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .ld { width: 18px; height: 2px; display: inline-block; }
+  .ldd { width: 18px; height: 0; border-top: 2px dashed; display: inline-block; }
+
+  .footer {
+    margin-top: 1.5rem;
+    font-size: 11px;
+    color: var(--text2);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<h1>Spettri eccitornici Abs e CD del 1,2-bis(benzoato)</h1>
+<p class="subtitle">
+  Simulazione del modello eccitornico punto-dipolo per un 1,2-diolo bis-esterificato con due gruppi benzoato,
+  basata sulla geometria reale (mol2) della molecola. Il diedro O–C–C–O controlla la distanza e l'orientazione
+  relativa dei due dipoli di transizione, da cui derivano l'energia di accoppiamento V e la rotatory strength R.
+  Nel limite V ≪ σ (qui sempre verificato) il CD eccitornico è proporzionale a R·V·(dε/dλ), la forma a derivata
+  prima caratteristica del couplet bisegnato.
+</p>
+
+<div class="layout">
+  <div>
+    <div class="panel-label">Dipoli di transizione dei due benzoati</div>
+    <svg id="nwSVG" viewBox="0 0 200 280" width="100%" style="display:block;max-width:200px;margin:0 auto;"></svg>
+    <div class="dipoleLeg">
+      <span><svg width="22" height="12"><line x1="2" y1="6" x2="20" y2="6" stroke="#185FA5" stroke-width="2.5" marker-start="url(#lgArrS1)" marker-end="url(#lgArrE1)"/></svg> μ₁</span>
+      <span><svg width="22" height="12"><line x1="2" y1="6" x2="20" y2="6" stroke="#534AB7" stroke-width="2.5" marker-start="url(#lgArrS2)" marker-end="url(#lgArrE2)"/></svg> μ₂</span>
+    </div>
+    <svg width="0" height="0" style="position:absolute;">
+      <defs>
+        <marker id="lgArrS1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6 Z" fill="#185FA5"/></marker>
+        <marker id="lgArrE1" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#185FA5"/></marker>
+        <marker id="lgArrS2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6 Z" fill="#534AB7"/></marker>
+        <marker id="lgArrE2" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#534AB7"/></marker>
+      </defs>
+    </svg>
+    <div class="info-line">
+      φ = <span id="phiLbl">−60</span>°
+      &nbsp;·&nbsp; d = <span id="dLbl">6.80</span> Å<br>
+      V = <span id="vLbl">0</span> cm⁻¹
+      &nbsp;·&nbsp; R×V = <span id="rvLbl">0</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="controls">
+      <div>
+        <label>φ O–C–C–O (°)</label>
+        <div class="ctrl-row">
+          <input type="range" id="phi" min="-180" max="180" step="1" value="-60">
+          <span class="ctrl-val" id="phi_out">−60°</span>
+        </div>
+      </div>
+      <div>
+        <label>λ₀ (nm)</label>
+        <div class="ctrl-row">
+          <input type="range" id="lam0" min="200" max="280" step="1" value="230">
+          <span class="ctrl-val" id="lam0_out">230</span>
+        </div>
+      </div>
+      <div>
+        <label>σ (nm)</label>
+        <div class="ctrl-row">
+          <input type="range" id="sig" min="8" max="20" step="1" value="12">
+          <span class="ctrl-val" id="sig_out">12</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-label">Assorbimento</div>
+    <div class="chart-wrap">
+      <canvas id="absC" role="img" aria-label="Spettro di assorbimento eccitornico del bis-benzoato">Spettro di assorbimento.</canvas>
+    </div>
+    <div class="legend">
+      <span><span class="ld" style="background:#185FA5;"></span>totale</span>
+      <span><span class="ldd" style="border-color:#D85A30;"></span>banda +</span>
+      <span><span class="ldd" style="border-color:#1D9E75;"></span>banda −</span>
+    </div>
+
+    <div class="chart-label" style="margin-top:10px;">CD (Δε)</div>
+    <div class="chart-wrap">
+      <canvas id="cdC" role="img" aria-label="Spettro CD eccitornico del bis-benzoato">Spettro CD.</canvas>
+    </div>
+    <div class="legend">
+      <span><span class="ld" style="background:#534AB7;"></span>CD eccitornico</span>
+    </div>
+  </div>
+</div>
+
+<div class="footer">CD@Pisa · Università di Pisa</div>
+
+<script>
+const D2R=Math.PI/180;
+const EPS0=30000;
+const PHI_REF=-60.0;
+
+const refC1=[-0.241632128,-0.270178066,-0.670365167];
+const refC4=[ 0.241632128, 0.270178066, 0.673306343];
+
+const fixRing1={
+  C13:[-1.699278160,-3.593295815,-0.113109441],
+  C14:[-3.622065181,-5.609491506, 0.171842336],
+  C15:[-3.063156149,-3.289774363,-0.226492714],
+  C16:[-1.307843495,-4.914668045, 0.143855342],
+  C17:[-2.267495370,-5.918986262, 0.285703433],
+  C18:[-4.020199848,-4.297649390,-0.083824177],
+};
+const fixRing2_ref={
+  C24:[ 2.761040151,-2.046142682, 2.002072266],
+  C25:[ 3.932384160,-4.029048479, 3.595618726],
+  C26:[ 2.014359331,-2.677679624, 3.006449213],
+  C27:[ 4.098477933,-2.416487293, 1.803624249],
+  C28:[ 4.681313046,-3.405260367, 2.598821534],
+  C29:[ 2.601323800,-3.666621435, 3.799901058],
+};
+
+function sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function add(a,b){return[a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+function norm(v){return Math.sqrt(v[0]**2+v[1]**2+v[2]**2);}
+function normalize(v){const n=norm(v);return[v[0]/n,v[1]/n,v[2]/n];}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function cross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function rotMat(ax,th){
+  const[x,y,z]=ax,c=Math.cos(th),s=Math.sin(th),t=1-c;
+  return[[t*x*x+c,t*x*y-s*z,t*x*z+s*y],[t*x*y+s*z,t*y*y+c,t*y*z-s*x],[t*x*z-s*y,t*y*z+s*x,t*z*z+c]];
+}
+function mv(R,v){return[R[0][0]*v[0]+R[0][1]*v[1]+R[0][2]*v[2],R[1][0]*v[0]+R[1][1]*v[1]+R[1][2]*v[2],R[2][0]*v[0]+R[2][1]*v[1]+R[2][2]*v[2]];}
+function rotPt(p,o,ax,dth){return add(o,mv(rotMat(ax,dth),sub(p,o)));}
+
+const axisCC=normalize(sub(refC1,refC4));
+
+function calcExciton(phi_deg){
+  const delta=(phi_deg-PHI_REF)*D2R;
+  function rot(p){return rotPt(p,refC1,axisCC,delta);}
+  const ring2={};
+  for(const[k,v] of Object.entries(fixRing2_ref)) ring2[k]=rot(v);
+  const r2v=Object.values(ring2);
+  const cent2=r2v.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]).map(x=>x/6);
+  const r1v=Object.values(fixRing1);
+  const cent1=r1v.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]).map(x=>x/6);
+  const R12=sub(cent2,cent1);
+  const d=norm(R12); const r12=normalize(R12);
+  const mu1=normalize(sub(fixRing1.C14,fixRing1.C13));
+  const mu2=normalize(sub(ring2.C25,ring2.C24));
+  const m1m2=dot(mu1,mu2),m1r=dot(mu1,r12),m2r=dot(mu2,r12);
+  const V=5035*(m1m2-3*m1r*m2r)/(d**3);
+  const Rrot=dot(R12,cross(mu1,mu2));
+  return{V,R:Rrot,d};
+}
+
+function gauss(l,l0,amp,sig){return amp*Math.exp(-((l-l0)**2)/(2*sig*sig));}
+function dgauss(l,l0,amp,sig){
+  return -amp*(l-l0)/(sig*sig)*Math.exp(-((l-l0)**2)/(2*sig*sig));
+}
+
+const lams=[];for(let l=180;l<=320;l+=0.5)lams.push(l);
+
+function computeFixedScale(){
+  const geo=calcExciton(-60);
+  const RV=geo.R*geo.V;
+  const maxVal=Math.max(...lams.map(l=>Math.abs(RV*dgauss(l,230,EPS0,12))));
+  return maxVal>0 ? 100/maxVal : 1;
+}
+const FIXED_SCALE=computeFixedScale();
+
+const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+const tickColor  = isDark ? '#999992' : '#888780';
+const titleColor = isDark ? '#999992' : '#888780';
+
+const zeroPlugin={id:'zero',afterDraw(c){
+  const xS=c.scales.x,yS=c.scales.y;if(!xS||!yS)return;
+  const y0=yS.getPixelForValue(0);const ctx=c.ctx;ctx.save();
+  ctx.strokeStyle=isDark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(xS.left,y0);ctx.lineTo(xS.right,y0);ctx.stroke();ctx.restore();
+}};
+
+const intFmt={callback:v=>Number.isInteger(v)?v:''};
+
+const commonScale = {
+  ticks: { font: { size: 9 }, color: tickColor },
+  grid:  { color: gridColor }
+};
+
+const absChart=new Chart(document.getElementById('absC').getContext('2d'),{
+  type:'line',plugins:[zeroPlugin],
+  data:{datasets:[
+    {data:[],borderColor:'#185FA5',borderWidth:2,pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#D85A30',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#1D9E75',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:0},parsing:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{...commonScale,type:'linear',min:185,max:310,
+         title:{display:true,text:'λ (nm)',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,stepSize:20}},
+      y:{...commonScale,
+         title:{display:true,text:'ε',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,...intFmt}}
+    }
+  }
+});
+
+const cdChart=new Chart(document.getElementById('cdC').getContext('2d'),{
+  type:'line',plugins:[zeroPlugin],
+  data:{datasets:[{data:[],borderColor:'#534AB7',borderWidth:2,pointRadius:0,tension:0.2}]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:0},parsing:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{...commonScale,type:'linear',min:185,max:310,
+         title:{display:true,text:'λ (nm)',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,stepSize:20}},
+      y:{...commonScale,min:-120,max:120,
+         title:{display:true,text:'Δε',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,...intFmt}}
+    }
+  }
+});
+
+function drawDipoles(phi_deg){
+  const svg=document.getElementById('nwSVG');
+  const cx=100, cy=190;
+
+  function capsuleGroup(rotDeg, isFixed, color, arrowIdSuffix){
+    const bondInner = isFixed
+      ? `<line x1="0" y1="0" x2="0" y2="-19" stroke="#3d3d3a" stroke-width="1.4"/>`
+      : `<line x1="0" y1="-10" x2="0" y2="-19" stroke="#3d3d3a" stroke-width="1.4"/>`;
+    return `
+      <g transform="translate(${cx},${cy}) rotate(${rotDeg})">
+        <line x1="-11" y1="-30" x2="-11" y2="-100" stroke="#3d3d3a" stroke-width="1.4" fill="none"/>
+        <line x1="11" y1="-30" x2="11" y2="-100" stroke="#3d3d3a" stroke-width="1.4" fill="none"/>
+        <path d="M-11,-30 A11 11 0 0 0 11 -30" fill="none" stroke="#3d3d3a" stroke-width="1.4"/>
+        <path d="M-11,-100 A11 11 0 0 1 11,-100" fill="none" stroke="#3d3d3a" stroke-width="1.4"/>
+        ${bondInner}
+        <line x1="0" y1="-41" x2="0" y2="-89" stroke="${color}" stroke-width="2"
+              marker-start="url(#arrS${arrowIdSuffix})" marker-end="url(#arrE${arrowIdSuffix})"/>
+      </g>`;
+  }
+
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrS1" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M5,0 L0,2.5 L5,5 Z" fill="#185FA5"/></marker>
+      <marker id="arrE1" markerWidth="5" markerHeight="5" refX="1" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#185FA5"/></marker>
+      <marker id="arrS2" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M5,0 L0,2.5 L5,5 Z" fill="#534AB7"/></marker>
+      <marker id="arrE2" markerWidth="5" markerHeight="5" refX="1" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#534AB7"/></marker>
+    </defs>
+    ${capsuleGroup(0, true, '#185FA5', '1')}
+    ${capsuleGroup(phi_deg, false, '#534AB7', '2')}
+    <circle cx="${cx}" cy="${cy}" r="10" fill="none" stroke="#3d3d3a" stroke-width="1.4"/>
+    <circle cx="${cx}" cy="${cy}" r="1.6" fill="#993c1d"/>
+  `;
+}
+
+function update(){
+  const phi=+document.getElementById('phi').value;
+  const lam0=+document.getElementById('lam0').value;
+  const sig=+document.getElementById('sig').value;
+
+  document.getElementById('phi_out').textContent=(phi>=0?'+':'')+phi+'°';
+  document.getElementById('lam0_out').textContent=lam0;
+  document.getElementById('sig_out').textContent=sig;
+  document.getElementById('phiLbl').textContent=(phi>=0?'+':'')+phi;
+
+  const geo=calcExciton(phi);
+  const RV=geo.R*geo.V;
+
+  document.getElementById('vLbl').textContent=Math.round(geo.V);
+  document.getElementById('dLbl').textContent=geo.d.toFixed(2);
+  document.getElementById('rvLbl').textContent=RV.toFixed(1);
+
+  const hc=1e7,nu0=hc/lam0;
+  const lamP=hc/(nu0+geo.V),lamM=hc/(nu0-geo.V);
+
+  const aP=lams.map(l=>({x:l,y:gauss(l,lamP,EPS0,sig)}));
+  const aM=lams.map(l=>({x:l,y:gauss(l,lamM,EPS0,sig)}));
+  const aT=lams.map((l,i)=>({x:l,y:aP[i].y+aM[i].y}));
+
+  const cT=lams.map(l=>({x:l,y:RV*FIXED_SCALE*dgauss(l,lam0,EPS0,sig)}));
+
+  absChart.data.datasets[0].data=aT;
+  absChart.data.datasets[1].data=aP;
+  absChart.data.datasets[2].data=aM;
+  absChart.update();
+  cdChart.data.datasets[0].data=cT;
+  cdChart.update();
+
+  drawDipoles(phi);
+}
+
+['phi','lam0','sig'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',update);
+});
+update();
+</script>
+</body>
+</html>
