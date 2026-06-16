@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accoppiamento eccitonico non degenere</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #ffffff;
+    --bg2:       #f5f5f3;
+    --border:    rgba(0,0,0,0.12);
+    --text:      #1a1a1a;
+    --text2:     #666660;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:     #1e1e1c;
+      --bg2:    #2a2a28;
+      --border: rgba(255,255,255,0.12);
+      --text:   #e8e8e4;
+      --text2:  #999992;
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 0.25rem; }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 540px) {
+    .controls { grid-template-columns: 1fr; }
+  }
+
+  label {
+    font-size: 13px;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctrl-row input[type=range] {
+    flex: 1;
+    accent-color: #185FA5;
+    cursor: pointer;
+  }
+  .ctrl-val {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 48px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .fixed-note {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .info-line {
+    font-size: 11px;
+    color: var(--text2);
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.7;
+  }
+
+  .chart-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 200px;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .ld { width: 18px; height: 2px; display: inline-block; }
+  .ldd { width: 18px; height: 0; border-top: 2px dashed; display: inline-block; }
+
+  .footer {
+    margin-top: 1.5rem;
+    font-size: 11px;
+    color: var(--text2);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<h1>Accoppiamento eccitonico non degenere</h1>
+<p class="subtitle">
+  Simulazione del modello a due livelli per due cromofori con energie monomeriche (λ₁, λ₂) e intensità (ε₁, ε₂)
+  indipendenti. La geometria è fissata a φ = 60° (couplet positivo), basata sulle coordinate reali del
+  1,2-bis(benzoato). L'Hamiltoniano a due livelli viene diagonalizzato esplicitamente: nel caso non degenere
+  le due bande eccitoroniche risultano sbilanciate in intensità e rotatory strength, a differenza del caso
+  degenere dove sono sempre equiintense e di segno opposto.
+</p>
+
+<div class="controls">
+  <div>
+    <label>λ₁ (nm)</label>
+    <div class="ctrl-row">
+      <input type="range" id="lam1" min="200" max="400" step="1" value="230">
+      <span class="ctrl-val" id="lam1_out">230</span>
+    </div>
+  </div>
+  <div>
+    <label>λ₂ (nm)</label>
+    <div class="ctrl-row">
+      <input type="range" id="lam2" min="200" max="400" step="1" value="245">
+      <span class="ctrl-val" id="lam2_out">245</span>
+    </div>
+  </div>
+  <div>
+    <label>ε₁</label>
+    <div class="ctrl-row">
+      <input type="range" id="eps1" min="5000" max="50000" step="1000" value="30000">
+      <span class="ctrl-val" id="eps1_out">30000</span>
+    </div>
+  </div>
+  <div>
+    <label>ε₂</label>
+    <div class="ctrl-row">
+      <input type="range" id="eps2" min="5000" max="50000" step="1000" value="30000">
+      <span class="ctrl-val" id="eps2_out">30000</span>
+    </div>
+  </div>
+  <div>
+    <label>σ (nm)</label>
+    <div class="ctrl-row">
+      <input type="range" id="sig" min="8" max="20" step="1" value="12">
+      <span class="ctrl-val" id="sig_out">12</span>
+    </div>
+  </div>
+  <div>
+    <label>φ (fisso)</label>
+    <div class="ctrl-row"><span class="fixed-note">60° · couplet positivo</span></div>
+  </div>
+</div>
+
+<div class="info-line">
+  d = 10.64 Å &nbsp;·&nbsp; V = <span id="vLbl">0</span> cm⁻¹
+  &nbsp;·&nbsp; θ = <span id="thetaLbl">0</span>°
+  &nbsp;·&nbsp; ΔE₁₂ = <span id="de12Lbl">0</span> cm⁻¹
+</div>
+
+<div class="chart-label">Assorbimento</div>
+<div class="chart-wrap">
+  <canvas id="absC" role="img" aria-label="Spettro di assorbimento eccitornico non degenere">Spettro di assorbimento.</canvas>
+</div>
+<div class="legend">
+  <span><span class="ld" style="background:#185FA5;"></span>totale</span>
+  <span><span class="ldd" style="border-color:#D85A30;"></span>banda +</span>
+  <span><span class="ldd" style="border-color:#1D9E75;"></span>banda −</span>
+</div>
+
+<div class="chart-label" style="margin-top:10px;">CD (Δε)</div>
+<div class="chart-wrap">
+  <canvas id="cdC" role="img" aria-label="Spettro CD eccitornico non degenere">Spettro CD.</canvas>
+</div>
+<div class="legend">
+  <span><span class="ld" style="background:#534AB7;"></span>CD totale</span>
+  <span><span class="ldd" style="border-color:#D85A30;"></span>contributo +</span>
+  <span><span class="ldd" style="border-color:#1D9E75;"></span>contributo −</span>
+</div>
+
+<div class="footer">CD@Pisa · Università di Pisa</div>
+
+<script>
+const D2R=Math.PI/180;
+const PHI_FIXED=60.0;
+const PHI_REF=-60.0;
+
+const refC1=[-0.241632128,-0.270178066,-0.670365167];
+const refC4=[ 0.241632128, 0.270178066, 0.673306343];
+
+const fixRing1={
+  C13:[-1.699278160,-3.593295815,-0.113109441],
+  C14:[-3.622065181,-5.609491506, 0.171842336],
+  C15:[-3.063156149,-3.289774363,-0.226492714],
+  C16:[-1.307843495,-4.914668045, 0.143855342],
+  C17:[-2.267495370,-5.918986262, 0.285703433],
+  C18:[-4.020199848,-4.297649390,-0.083824177],
+};
+const fixRing2_ref={
+  C24:[ 2.761040151,-2.046142682, 2.002072266],
+  C25:[ 3.932384160,-4.029048479, 3.595618726],
+  C26:[ 2.014359331,-2.677679624, 3.006449213],
+  C27:[ 4.098477933,-2.416487293, 1.803624249],
+  C28:[ 4.681313046,-3.405260367, 2.598821534],
+  C29:[ 2.601323800,-3.666621435, 3.799901058],
+};
+
+function sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function add(a,b){return[a[0]+b[0],a[1]+b[1],a[2]+b[2]];}
+function norm(v){return Math.sqrt(v[0]**2+v[1]**2+v[2]**2);}
+function normalize(v){const n=norm(v);return[v[0]/n,v[1]/n,v[2]/n];}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function cross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function rotMat(ax,th){
+  const[x,y,z]=ax,c=Math.cos(th),s=Math.sin(th),t=1-c;
+  return[[t*x*x+c,t*x*y-s*z,t*x*z+s*y],[t*x*y+s*z,t*y*y+c,t*y*z-s*x],[t*x*z-s*y,t*y*z+s*x,t*z*z+c]];
+}
+function mv(R,v){return[R[0][0]*v[0]+R[0][1]*v[1]+R[0][2]*v[2],R[1][0]*v[0]+R[1][1]*v[1]+R[1][2]*v[2],R[2][0]*v[0]+R[2][1]*v[1]+R[2][2]*v[2]];}
+function rotPt(p,o,ax,dth){return add(o,mv(rotMat(ax,dth),sub(p,o)));}
+
+const axisCC=normalize(sub(refC1,refC4));
+
+function getFixedGeometry(){
+  const delta=(PHI_FIXED-PHI_REF)*D2R;
+  function rot(p){return rotPt(p,refC1,axisCC,delta);}
+  const ring2={};
+  for(const[k,v] of Object.entries(fixRing2_ref)) ring2[k]=rot(v);
+  const r2v=Object.values(ring2);
+  const cent2=r2v.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]).map(x=>x/6);
+  const r1v=Object.values(fixRing1);
+  const cent1=r1v.reduce((a,v)=>[a[0]+v[0],a[1]+v[1],a[2]+v[2]],[0,0,0]).map(x=>x/6);
+  const R12=sub(cent2,cent1);
+  const d=norm(R12); const r12=normalize(R12);
+  const mu1=normalize(sub(fixRing1.C14,fixRing1.C13));
+  const mu2=normalize(sub(ring2.C25,ring2.C24));
+  return{d,r12,mu1,mu2,R12};
+}
+const GEO = getFixedGeometry();
+
+function rotatoryGeom(){
+  const cr = cross(GEO.mu1, GEO.mu2);
+  return dot(GEO.R12, cr);
+}
+const R_GEOM_RAW = rotatoryGeom();
+const SIGN_FIX = R_GEOM_RAW < 0 ? -1 : 1;
+
+function gauss(l,l0,amp,sig){return amp*Math.exp(-((l-l0)**2)/(2*sig*sig));}
+
+const lams=[];for(let l=180;l<=420;l+=0.5)lams.push(l);
+
+function calcNonDegenerate(lam1, lam2, eps1, eps2, sig){
+  const hc=1e7;
+  const E1 = hc/lam1, E2 = hc/lam2;
+
+  const muScale1 = Math.sqrt(eps1/30000);
+  const muScale2 = Math.sqrt(eps2/30000);
+
+  const m1m2 = dot(GEO.mu1,GEO.mu2);
+  const m1r  = dot(GEO.mu1,GEO.r12);
+  const m2r  = dot(GEO.mu2,GEO.r12);
+  const d = GEO.d;
+
+  let V = 5035*muScale1*muScale2*(m1m2-3*m1r*m2r)/(d**3);
+
+  const dE = E1-E2;
+  let theta;
+  if (Math.abs(dE) < 1e-6) {
+    theta = Math.PI/4;
+  } else {
+    theta = 0.5*Math.atan2(2*V, dE);
+  }
+
+  const c1p=Math.cos(theta), c2p=Math.sin(theta);
+  const c1m=-Math.sin(theta), c2m=Math.cos(theta);
+
+  const Eavg=(E1+E2)/2;
+  const Esplit=Math.sqrt(((E1-E2)/2)**2 + V**2);
+  const Ep=Eavg+Esplit, Em=Eavg-Esplit;
+  const lamP=hc/Ep, lamM=hc/Em;
+
+  const mu1sq = muScale1*muScale1;
+  const mu2sq = muScale2*muScale2;
+  const Dp = (c1p**2)*mu1sq + (c2p**2)*mu2sq + 2*c1p*c2p*muScale1*muScale2*m1m2;
+  const Dm = (c1m**2)*mu1sq + (c2m**2)*mu2sq + 2*c1m*c2m*muScale1*muScale2*m1m2;
+
+  const Rp = SIGN_FIX * c1p*c2p*muScale1*muScale2*R_GEOM_RAW;
+  const Rm = SIGN_FIX * c1m*c2m*muScale1*muScale2*R_GEOM_RAW;
+
+  const EPS_REF = 30000;
+
+  const absP = lams.map(l=>gauss(l,lamP,Dp*EPS_REF,sig));
+  const absM = lams.map(l=>gauss(l,lamM,Dm*EPS_REF,sig));
+  const absT = lams.map((l,i)=>absP[i]+absM[i]);
+
+  const cdP = lams.map(l=>Rp*CD_SCALE*gauss(l,lamP,1,sig)/sig);
+  const cdM = lams.map(l=>Rm*CD_SCALE*gauss(l,lamM,1,sig)/sig);
+  const cdT = lams.map((l,i)=>cdP[i]+cdM[i]);
+
+  return{V, theta:theta*180/Math.PI, dE, absP, absM, absT, cdP, cdM, cdT, lamP, lamM};
+}
+
+let CD_SCALE = 1.0;
+function calibrate(){
+  CD_SCALE = 1.0;
+  const base = calcNonDegenerate(230, 245, 30000, 30000, 12);
+  const peak = Math.max(...base.cdP.map(Math.abs), ...base.cdM.map(Math.abs));
+  CD_SCALE = peak>0 ? 90/peak : 1;
+}
+calibrate();
+
+const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+const tickColor  = isDark ? '#999992' : '#888780';
+const titleColor = isDark ? '#999992' : '#888780';
+
+const zeroPlugin={id:'zero',afterDraw(c){
+  const xS=c.scales.x,yS=c.scales.y;if(!xS||!yS)return;
+  const y0=yS.getPixelForValue(0);const ctx=c.ctx;ctx.save();
+  ctx.strokeStyle=isDark?'rgba(255,255,255,0.15)':'rgba(0,0,0,0.15)';ctx.lineWidth=1;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(xS.left,y0);ctx.lineTo(xS.right,y0);ctx.stroke();ctx.restore();
+}};
+
+const intFmt={callback:v=>Number.isInteger(v)?v:''};
+
+const commonScale = {
+  ticks: { font: { size: 9 }, color: tickColor },
+  grid:  { color: gridColor }
+};
+
+const absChart=new Chart(document.getElementById('absC').getContext('2d'),{
+  type:'line',plugins:[zeroPlugin],
+  data:{datasets:[
+    {data:[],borderColor:'#185FA5',borderWidth:2,pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#D85A30',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#1D9E75',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:0},parsing:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{...commonScale,type:'linear',min:185,max:410,
+         title:{display:true,text:'λ (nm)',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,stepSize:30}},
+      y:{...commonScale,
+         title:{display:true,text:'ε',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,...intFmt}}
+    }
+  }
+});
+
+const cdChart=new Chart(document.getElementById('cdC').getContext('2d'),{
+  type:'line',plugins:[zeroPlugin],
+  data:{datasets:[
+    {data:[],borderColor:'#534AB7',borderWidth:2,pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#D85A30',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+    {data:[],borderColor:'#1D9E75',borderWidth:1,borderDash:[3,2],pointRadius:0,tension:0.2},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:0},parsing:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{...commonScale,type:'linear',min:185,max:410,
+         title:{display:true,text:'λ (nm)',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,stepSize:30}},
+      y:{...commonScale,min:-200,max:200,
+         title:{display:true,text:'Δε',font:{size:10},color:titleColor},
+         ticks:{...commonScale.ticks,...intFmt}}
+    }
+  }
+});
+
+function update(){
+  const lam1=+document.getElementById('lam1').value;
+  const lam2=+document.getElementById('lam2').value;
+  const eps1=+document.getElementById('eps1').value;
+  const eps2=+document.getElementById('eps2').value;
+  const sig=+document.getElementById('sig').value;
+
+  document.getElementById('lam1_out').textContent=lam1;
+  document.getElementById('lam2_out').textContent=lam2;
+  document.getElementById('eps1_out').textContent=eps1;
+  document.getElementById('eps2_out').textContent=eps2;
+  document.getElementById('sig_out').textContent=sig;
+
+  const res = calcNonDegenerate(lam1, lam2, eps1, eps2, sig);
+
+  document.getElementById('vLbl').textContent=Math.round(res.V);
+  document.getElementById('thetaLbl').textContent=res.theta.toFixed(1);
+  document.getElementById('de12Lbl').textContent=Math.round(res.dE);
+
+  const aT=lams.map((l,i)=>({x:l,y:res.absT[i]}));
+  const aP=lams.map((l,i)=>({x:l,y:res.absP[i]}));
+  const aM=lams.map((l,i)=>({x:l,y:res.absM[i]}));
+
+  absChart.data.datasets[0].data=aT;
+  absChart.data.datasets[1].data=aP;
+  absChart.data.datasets[2].data=aM;
+  absChart.update();
+
+  const cT=lams.map((l,i)=>({x:l,y:res.cdT[i]}));
+  const cP=lams.map((l,i)=>({x:l,y:res.cdP[i]}));
+  const cM=lams.map((l,i)=>({x:l,y:res.cdM[i]}));
+
+  cdChart.data.datasets[0].data=cT;
+  cdChart.data.datasets[1].data=cP;
+  cdChart.data.datasets[2].data=cM;
+  cdChart.update();
+}
+
+['lam1','lam2','eps1','eps2','sig'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',update);
+});
+update();
+</script>
+</body>
+</html>
