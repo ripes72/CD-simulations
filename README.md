@@ -12,3 +12,7 @@ Interactive simulation of the Kramers–Kronig relation between circular dichroi
 **Exciton coupling simulator: 1,2-bis(benzoate)**
 
 Interactive simulation of the exciton-coupled absorption and CD spectra of a 1,2-diol bis-benzoate, based on real molecular coordinates. The O–C–C–O dihedral angle controls the relative position and orientation of the two benzoate transition dipoles, from which the coupling energy V and rotatory strength R are computed explicitly via the point-dipole approximation. In the V ≪ σ regime (always satisfied here), the CD spectrum is shown as proportional to R·V·(dε/dλ), the characteristic bisignate derivative shape of exciton-coupled chromophores.
+
+**Non-degenerate exciton coupling simulator**
+
+Interactive simulation of exciton coupling between two chromophores with independent monomeric wavelengths (λ₁, λ₂) and intensities (ε₁, ε₂), at fixed dihedral geometry (φ = 60°, positive couplet) from the real 1,2-bis(benzoate) coordinates. The two-level Hamiltonian is diagonalized explicitly, showing how non-degeneracy breaks the equal-intensity, equal-and-opposite rotatory strength symmetry of the degenerate case: the two exciton bands become unequal in both absorption intensity and CD amplitude as λ₁ and λ₂ diverge.
